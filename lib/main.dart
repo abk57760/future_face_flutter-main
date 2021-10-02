@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:future_face_app/localization/demo_localization.dart';
+import 'package:future_face_app/screens/album.dart';
+import 'package:future_face_app/screens/share_album.dart';
 import 'screens/splash.dart';
 import 'screens/import.dart';
 import 'screens/result.dart';
@@ -42,6 +44,8 @@ class _MyAppState extends State<MyApp> {
         Locale('fr', 'FR'),
         Locale('pt', 'PT'),
         Locale('es', 'ES'),
+        Locale('ur', 'PK'),
+        Locale('hi', 'IN'),
         Locale('zh', 'CN'),
         Locale('ar', 'SA'),
       ],
@@ -65,6 +69,8 @@ class _MyAppState extends State<MyApp> {
         '/splash': (context) => const SplashScreen(),
         '/import': (context) => const ImportScreen(),
         '/result': (context) => const ResultScreen(),
+        '/album': (context) => const AlbumScreen(),
+        '/albumResult': (context) => const AlbumResult(),
       },
     );
   }

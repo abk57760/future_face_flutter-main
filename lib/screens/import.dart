@@ -1,7 +1,11 @@
 import 'dart:io';
+import 'package:connectivity_wrapper/connectivity_wrapper.dart';
 import 'package:flutter/material.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:future_face_app/localization/localization_const.dart';
+import 'package:future_face_app/models/fileobject.dart';
 import 'package:getwidget/getwidget.dart';
+import 'package:permission_handler/permission_handler.dart';
 import '/constants/theme.dart';
 import 'package:image_cropper/image_cropper.dart';
 import 'package:image_picker/image_picker.dart';
@@ -15,6 +19,7 @@ class ImportScreen extends StatefulWidget {
 
 class _ImportScreenState extends State<ImportScreen> {
   File? imageFile, oldImageFile;
+  String screenTitle = "Imported Picture";
 
   Future pickImage(ImageSource source) async {
     oldImageFile = imageFile;
@@ -24,16 +29,18 @@ class _ImportScreenState extends State<ImportScreen> {
 
     setState(() {
       if (pickedImage != null) {
-        print("Picker: Image loaded.");
+        //print("Image Loaded");
         imageFile = File(pickedImage.path);
+
         cropAndResizeImage(imageFile!);
       } else {
-        print("Picker: No image loaded.");
+        Fluttertoast.showToast(msg: "No Image Selected");
       }
     });
   }
 
   Future cropAndResizeImage(File imageFileToCrop) async {
+    String _title = getTranslated(context, 'Resize_Image');
     File? croppedImage = await ImageCropper.cropImage(
         sourcePath: imageFileToCrop.path,
         compressFormat: ImageCompressFormat.png,
@@ -47,24 +54,24 @@ class _ImportScreenState extends State<ImportScreen> {
           CropAspectRatioPreset.ratio4x3,
           CropAspectRatioPreset.ratio16x9
         ],
-        androidUiSettings: const AndroidUiSettings(
-            toolbarTitle: 'Resize Image',
+        androidUiSettings: AndroidUiSettings(
+            toolbarTitle: _title,
             toolbarColor: kPrimaryColor,
             toolbarWidgetColor: Colors.white,
             activeControlsWidgetColor: kPrimaryColor,
             statusBarColor: kPrimaryColor,
             initAspectRatio: CropAspectRatioPreset.original,
             lockAspectRatio: false),
-        iosUiSettings: const IOSUiSettings(
-          title: 'Resize Image',
+        iosUiSettings: IOSUiSettings(
+          title: _title,
         ));
 
     setState(() {
+      screenTitle = getTranslated(context, 'Resize_Image');
       if (croppedImage != null) {
-        print("Cropper: Image cropped.");
+        Fluttertoast.showToast(msg: "Image Cropped Successfully");
         imageFile = croppedImage;
       } else {
-        print("Cropper: Operation discarded.");
         imageFile = oldImageFile;
       }
     });
@@ -74,7 +81,7 @@ class _ImportScreenState extends State<ImportScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(getTranslated(context, 'Import_Picture')!),
+        title: Text(getTranslated(context, "Import_Picture")),
       ),
       body: Container(
         decoration: const BoxDecoration(
@@ -118,6 +125,18 @@ class _ImportScreenState extends State<ImportScreen> {
     );
   }
 
+  Future<bool> _requestPermission(Permission permission) async {
+    if (await permission.isGranted) {
+      return true;
+    } else {
+      var result = await permission.request();
+      if (result == PermissionStatus.granted) {
+        return true;
+      }
+    }
+    return false;
+  }
+
   Widget pickImageOptionsRow() {
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
@@ -130,8 +149,10 @@ class _ImportScreenState extends State<ImportScreen> {
           width: 160.0,
           height: 130.0,
           child: ElevatedButton(
-            onPressed: () {
-              pickImage(ImageSource.gallery);
+            onPressed: () async {
+              if (await _requestPermission(Permission.storage)) {
+                pickImage(ImageSource.gallery);
+              }
             },
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
@@ -143,7 +164,7 @@ class _ImportScreenState extends State<ImportScreen> {
                 ),
                 const SizedBox(height: 10.0),
                 Text(
-                  getTranslated(context, 'Gallery')!,
+                  getTranslated(context, 'Gallery'),
                   style: const TextStyle(
                     fontSize: 20.0,
                   ),
@@ -160,8 +181,10 @@ class _ImportScreenState extends State<ImportScreen> {
           width: 160.0,
           height: 130.0,
           child: ElevatedButton(
-            onPressed: () {
-              pickImage(ImageSource.camera);
+            onPressed: () async {
+              if (await _requestPermission(Permission.camera)) {
+                pickImage(ImageSource.camera);
+              }
             },
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
@@ -173,7 +196,7 @@ class _ImportScreenState extends State<ImportScreen> {
                 ),
                 const SizedBox(height: 10.0),
                 Text(
-                  getTranslated(context, 'Camera')!,
+                  getTranslated(context, 'Camera'),
                   style: const TextStyle(
                     fontSize: 20.0,
                   ),
@@ -197,15 +220,23 @@ class _ImportScreenState extends State<ImportScreen> {
           ),
           height: 100.0,
           child: ElevatedButton(
-            onPressed: () {
-              Navigator.pushNamed(context, '/result',
-                  arguments: {'image': imageFile});
+            onPressed: () async {
+              Fileobject.setFile(imageFile!);
+              Navigator.pushNamed(
+                context,
+                '/result',
+              );
+              if (await ConnectivityWrapper.instance.isConnected) {
+              } else {
+                Fluttertoast.showToast(
+                    msg: "Please Check your Internet Conntection");
+              }
             },
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Text(
-                  getTranslated(context, 'Proceed')!,
+                  (getTranslated(context, 'Proceed')),
                   style: const TextStyle(
                     fontSize: 20.0,
                   ),

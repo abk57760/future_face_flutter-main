@@ -1,17 +1,23 @@
 import 'dart:convert';
 import 'dart:io';
-
 import 'dart:typed_data';
+import 'dart:ui';
+import 'package:carousel_slider/carousel_slider.dart';
 import 'package:connectivity/connectivity.dart';
+import 'package:dio/dio.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
+import 'package:flutter/rendering.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:future_face_app/constants/urls.dart';
 import 'package:future_face_app/controllers/check_url.dart';
 import 'package:future_face_app/localization/localization_const.dart';
-import 'package:getwidget/getwidget.dart';
+import 'package:future_face_app/models/fileobject.dart';
 import 'package:http/http.dart' as http;
-import 'package:gallery_saver/gallery_saver.dart';
+import 'package:image_gallery_saver/image_gallery_saver.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:permission_handler/permission_handler.dart';
+import 'package:share_plus/share_plus.dart';
 import '/models/processed_image.dart';
 
 class ResultScreen extends StatefulWidget {
@@ -22,15 +28,19 @@ class ResultScreen extends StatefulWidget {
 }
 
 class _ResultScreenState extends State<ResultScreen> {
+  bool? _isButtonDisabled;
   File? imageFile;
   Uint8List? imgBytes;
-  double _currentSliderValue = 65.0;
+  double _currentSliderValue = 65;
   String statusMessage = "";
   bool hasRequestError = true;
+  final Dio dio = Dio();
+  bool loading = false;
+  double progress = 0;
 
   void navigateBack(BuildContext context) {
     Future.delayed(
-      const Duration(seconds: 3),
+      const Duration(seconds: 1),
       () => {
         Navigator.pop(context),
       },
@@ -41,11 +51,12 @@ class _ResultScreenState extends State<ResultScreen> {
       BuildContext context, String message, bool isErrorMsg) {
     setState(() {
       statusMessage = message;
+      // Fluttertoast.showToast(msg: statusMessage);
       if (isErrorMsg) hasRequestError = true;
     });
 
     // if there's an error, navigate to previous screen
-    if (isErrorMsg) navigateBack(context);
+    if (isErrorMsg) Navigator.pop(context);
   }
 
   Future<bool> isDeviceConnected() async {
@@ -78,7 +89,7 @@ class _ResultScreenState extends State<ResultScreen> {
       }
 
       if (isAnyServerOnline) {
-        print("Uploading image: $activePostServerURI");
+        // print("Uploading image: $activePostServerURI");
 
         // build multipart request and send
         var request =
@@ -92,32 +103,39 @@ class _ResultScreenState extends State<ResultScreen> {
           http.Response.fromStream(response).then((value) {
             // response OK
             if (value.statusCode == 200) {
-              print("Response Headers:");
-              print(value.headers);
+              //print("Response Headers:");
+              //print(value.headers);
 
-              print("Response (Base64):");
+              //print("Response (Base64):");
+
               Map<String, dynamic> imgResponseMap = json.decode(value.body);
               ProcessedImage imgResponse =
                   ProcessedImage.fromJson(imgResponseMap);
-              print(imgResponse.s0);
+              //print(imgResponse.s0);
 
               if (imgResponse.s0 != null) {
                 if (mounted) {
                   setState(() {
                     imgBytes = const Base64Decoder().convert(imgResponse.s0!);
                     imgBytes = Uint8List.fromList(imgBytes!);
-                    print("Response (Unsigned Int8 List):");
-                    print(imgBytes);
+                    // print("Response (Unsigned Int8 List):");
+                    // print(imgBytes);
+
+                    imageFile = File.fromRawPath(imgBytes!);
                   });
                 }
               } else {
                 if (mounted) {
+                  Fluttertoast.showToast(
+                      msg: "Error retrieving data.\nPlease try again.");
                   updateStatusDisplay(context,
                       "Error retrieving data.\nPlease try again.", true);
                 }
               }
             } else {
               if (mounted) {
+                Fluttertoast.showToast(
+                    msg: "Error in uploading File  \n Please Try Again");
                 updateStatusDisplay(
                     context, "Error uploading file.\nPlease try again.", true);
               }
@@ -126,105 +144,100 @@ class _ResultScreenState extends State<ResultScreen> {
         });
       } else {
         if (mounted) {
+          Fluttertoast.showToast(
+              msg: "Resource Server are busy. \nPlease try again.");
           updateStatusDisplay(
               context, "Resource server is down.\nPlease try later.", true);
         }
       }
     } else {
-      if (mounted) {
-        updateStatusDisplay(
-            context,
-            "No internet connectivity.\nPlease ensure your device is connected to the internet.",
-            true);
-      }
+      if (mounted) {}
     }
   }
 
-  // Future<bool> saveImageToGallery(File imageFileToSave) async {
-  //   Directory directory;
-  //   try {
-  //     if (Platform.isAndroid) {
-  //       if (await requestPermission(Permission.storage)) {
-  //         directory = (await getExternalStorageDirectory())!;
-  //         // build Android root (emulated) path
-  //         String newPath = "";
-  //         List<String> paths = directory.path.split("/");
-  //         for (int x = 1; x < paths.length; x++) {
-  //           String folder = paths[x];
-  //           if (folder != "Android") {
-  //             newPath += "/" + folder;
-  //           } else {
-  //             break;
-  //           }
-  //         }
-  //         // create FutureFace directory in emulated directory
-  //         newPath = newPath + '/$galleryPathName';
-  //         directory = Directory(newPath);
-  //       } else {
-  //         return false;
-  //       }
-  //     } else {
-  //       // if iOS platform, simply request permission and store temporarily
-  //       if (await requestPermission(Permission.photos)) {
-  //         directory = await getTemporaryDirectory();
-  //       } else {
-  //         return false;
-  //       }
-  //     }
+  Future saveandshare(Uint8List bytes) async {
+    final directory = await getApplicationDocumentsDirectory();
+    final image = File('${directory.path}/flutter.png');
+    image.writeAsBytesSync(bytes);
 
-  //     // generate a temporary file path to store file at
-  //     Random rng = Random();
-  //     int randNum = rng.nextInt(10000) + rng.nextInt(10000);
-  //     File saveFile =
-  //         File(directory.path + "/$imageFileNamePrefix-$randNum.png");
+    await Share.shareFiles([image.path]);
+  }
 
-  //     // check FutureFace directory if does not exist
-  //     if (!await directory.exists()) {
-  //       await directory.create(recursive: true);
-  //     }
+  Future<bool> _requestPermission(Permission permission) async {
+    if (await permission.isGranted) {
+      return true;
+    } else {
+      var result = await permission.request();
+      if (result == PermissionStatus.granted) {
+        return true;
+      }
+    }
+    return false;
+  }
 
-  //     // ensure FutureFace directory is created
-  //     if (await directory.exists()) {
-  //       // write file to iOS gallery
-  //       if (Platform.isIOS) {
-  //         // await ImageGallerySaver.saveFile(saveFile.path,
-  //         //     isReturnPathOfIOS: true);
-  //       } else {
-  //         await imageFileToSave.copy(saveFile.path);
-  //       }
+  Future<bool> saveImage(Uint8List bytes) async {
+    Directory directory;
+    try {
+      if (Platform.isAndroid) {
+        if (await _requestPermission(Permission.storage)) {
+          directory = (await getExternalStorageDirectory())!;
+          String newPath = "";
+          // print(directory);
 
-  //       return true;
-  //     }
-  //     return false;
-  //   } catch (e) {
-  //     print(e);
-  //     return false;
-  //   }
-  // }
+          newPath = directory.path + "/Future_Face_App";
+          directory = Directory(newPath);
+        } else {
+          return false;
+        }
+      } else {
+        if (await _requestPermission(Permission.photos)) {
+          directory = await getTemporaryDirectory();
+        } else {
+          return false;
+        }
+      }
 
-  // Future<bool> requestPermission(Permission permission) async {
-  //   if (await permission.isGranted) {
-  //     return true;
-  //   } else {
-  //     var result = await permission.request();
-  //     if (result == PermissionStatus.granted) {
-  //       return true;
-  //     }
-  //   }
-  //   return false;
-  // }
+      if (!await directory.exists()) {
+        await directory.create(recursive: true);
+      } else if (await directory.exists()) {
+        final time = DateTime.now()
+            .toIso8601String()
+            .replaceAll(",", "-")
+            .replaceAll(":", "-");
+
+        final name = 'Futureface-$time';
+
+        File saveFile = File(directory.path + "/$name.png");
+        saveFile.writeAsBytes(
+            bytes.buffer.asUint8List(bytes.offsetInBytes, bytes.lengthInBytes));
+        await ImageGallerySaver.saveImage(bytes, name: name);
+        Fluttertoast.showToast(msg: "Image Saved");
+        Navigator.pushNamed(context, '/album');
+        if (Platform.isIOS) {
+          await ImageGallerySaver.saveFile(saveFile.path,
+              isReturnPathOfIOS: true);
+        }
+        return true;
+      }
+      return false;
+    } catch (e) {
+      //print(e);
+      return false;
+    }
+  }
 
   @override
   void initState() {
     super.initState();
+    _isButtonDisabled = false;
 
     Future.delayed(
-      const Duration(seconds: 3),
+      const Duration(seconds: 1),
       () {
         if (imageFile != null) {
           uploadImageToServer(imageFile!);
         } else {
-          print('Failed loading image file.');
+          Fluttertoast.showToast(msg: "Failed to load image ");
         }
       },
     );
@@ -232,46 +245,35 @@ class _ResultScreenState extends State<ResultScreen> {
 
   @override
   Widget build(BuildContext context) {
-    Map data = ModalRoute.of(context)!.settings.arguments as Map;
-
     setState(() {
-      imageFile = data['image'];
+      imageFile = Fileobject.getFile();
     });
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(getTranslated(context, 'Result')!),
+        title: Text(getTranslated(context, 'Result')),
         actions: [
-          (imgBytes == null)
-              ? const Center(child: CircularProgressIndicator())
-              : Row(
-                  children: [
-                    InkWell(
-                      onTap: () async {
-                        if (imageFile == null) {
-                          return;
-                        } else if (imageFile != null) {
-                          await GallerySaver.saveImage(imageFile!.path);
-                          Fluttertoast.showToast(msg: "Image saved to Gallery");
-                        } else {
-                          Fluttertoast.showToast(
-                              msg: "Error in  saving  to Gallery");
-                        }
-                      },
-                      child: const Icon(Icons.save, size: 30.0),
-                    ),
-                    const SizedBox(width: 10.0),
-                    InkWell(
-                      onTap: () async {
-                        const channel =
-                            MethodChannel('channel:me.albie.share/share');
-                        channel.invokeMethod('shareFile', 'image.jpg');
-                      },
-                      child: const Icon(Icons.share, size: 30.0),
-                    ),
-                    const SizedBox(width: 20.0),
-                  ],
+          if (imgBytes == null)
+            const Center(child: CircularProgressIndicator())
+          else
+            Row(
+              children: [
+                InkWell(
+                  onTap: () {
+                    saveImage(imgBytes!);
+                  },
+                  child: const Icon(Icons.save, size: 30.0),
                 ),
+                const SizedBox(width: 10.0),
+                InkWell(
+                  onTap: () {
+                    saveandshare(imgBytes!);
+                  },
+                  child: const Icon(Icons.share, size: 30.0),
+                ),
+                const SizedBox(width: 20.0),
+              ],
+            ),
         ],
       ),
       body: Container(
@@ -297,15 +299,39 @@ class _ResultScreenState extends State<ResultScreen> {
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
               Column(
-                mainAxisAlignment: MainAxisAlignment.center,
+                mainAxisAlignment: MainAxisAlignment.spaceAround,
                 children: [
                   (imgBytes == null)
                       ? const CircularProgressIndicator(color: Colors.white70)
-                      : GFAvatar(
-                          backgroundImage: MemoryImage(imgBytes!),
-                          shape: GFAvatarShape.standard,
-                          radius: 150.0,
-                        ),
+                      : (CarouselSlider(
+                          items: [
+                            Container(
+                              margin: const EdgeInsets.all(6.0),
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(8.0),
+                                image: DecorationImage(
+                                  image: FileImage(imageFile!),
+                                  fit: BoxFit.cover,
+                                ),
+                              ),
+                            ),
+                            Container(
+                              margin: const EdgeInsets.all(6.0),
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(8.0),
+                                image: DecorationImage(
+                                  image: MemoryImage(imgBytes!),
+                                  fit: BoxFit.cover,
+                                ),
+                              ),
+                            ),
+                          ],
+                          options: CarouselOptions(
+                            height: 300.0,
+                            reverse: false,
+                            enableInfiniteScroll: false,
+                          ),
+                        )),
                   const SizedBox(
                     height: 60.0,
                     width: 60.0,
@@ -316,19 +342,20 @@ class _ResultScreenState extends State<ResultScreen> {
                       mainAxisAlignment: MainAxisAlignment.end,
                       children: [
                         Text(
-                          getTranslated(context, 'Drag_slider_to_adjust_age')!,
+                          getTranslated(context, 'Drag_slider_to_adjust_age'),
                           textAlign: TextAlign.left,
                           style: const TextStyle(
                             color: Colors.white,
                           ),
                         ),
                         const SizedBox(height: 10),
-                        Slider(
+                        CupertinoSlider(
                           value: _currentSliderValue,
                           min: 25,
                           max: 65,
                           divisions: 4,
-                          label: _currentSliderValue.round().toString(),
+                          activeColor: Colors.white,
+                          //label: _currentSliderValue.round().toString(),
                           onChanged: (value) {
                             if (mounted) {
                               setState(() {
@@ -337,15 +364,38 @@ class _ResultScreenState extends State<ResultScreen> {
                             }
                           },
                           onChangeEnd: (value) {
-                            if (mounted) {
-                              setState(() {
-                                imgBytes = null;
-                              });
-                            }
-                            uploadImageToServer(
-                                imageFile!, _currentSliderValue);
+                            setState(() {
+                              _isButtonDisabled = true;
+                            });
                           },
                         ),
+                        const SizedBox(height: 25),
+                        Text(
+                          'Current Age: ${_currentSliderValue.toInt()}',
+                          style: const TextStyle(color: Colors.white),
+                        ),
+                        const SizedBox(height: 25),
+                        (_isButtonDisabled == true)
+                            ? ElevatedButton(
+                                onPressed: () {
+                                  const CircularProgressIndicator(
+                                      color: Colors.white70);
+                                  uploadImageToServer(
+                                      imageFile!, _currentSliderValue);
+                                },
+                                child: Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Text(
+                                      (getTranslated(context, 'Proceed')),
+                                      style: const TextStyle(
+                                        fontSize: 20.0,
+                                      ),
+                                    )
+                                  ],
+                                ),
+                              )
+                            : Container()
                       ],
                     ),
                   )

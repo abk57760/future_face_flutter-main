@@ -1,7 +1,12 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
+import 'package:fluttertoast/fluttertoast.dart';
+import 'dart:io' as io;
 import 'package:future_face_app/localization/localization_const.dart';
 import 'package:future_face_app/main.dart';
 import 'package:future_face_app/models/language.dart';
+import 'package:path_provider/path_provider.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({Key? key}) : super(key: key);
@@ -13,6 +18,7 @@ class SplashScreen extends StatefulWidget {
 class _SplashScreenState extends State<SplashScreen> {
   void _changedLang(Language language) {
     Locale _temp;
+
     switch (language.languageCode) {
       case 'en':
         _temp = Locale(language.languageCode, 'US');
@@ -32,6 +38,12 @@ class _SplashScreenState extends State<SplashScreen> {
       case 'ar':
         _temp = Locale(language.languageCode, 'SA');
         break;
+      case 'hi':
+        _temp = Locale(language.languageCode, 'IN');
+        break;
+      case 'ur':
+        _temp = Locale(language.languageCode, 'PK');
+        break;
       default:
         _temp = Locale(language.languageCode, 'US');
     }
@@ -39,6 +51,34 @@ class _SplashScreenState extends State<SplashScreen> {
   }
 
   Language activeLang = Language.languageList().first;
+
+  List file = [];
+
+  @override
+  void initState() {
+    super.initState();
+    // _listofFiles();
+  }
+
+  void _listofFiles() async {
+    Directory directory;
+    directory = (await getExternalStorageDirectory())!;
+    String newPath = directory.path + "/Future_Face_App";
+    directory = Directory(newPath);
+    //print(directory);
+    if (directory.existsSync()) {
+      setState(() {
+        file = io.Directory(directory.path).listSync();
+        // print(file);
+        Navigator.pushNamed(
+          context,
+          '/album',
+        );
+      });
+    } else {
+      Fluttertoast.showToast(msg: "No directory exists");
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -75,7 +115,7 @@ class _SplashScreenState extends State<SplashScreen> {
                         setState(() {
                           activeLang = language;
                         });
-                        print(language.name);
+                        //print(language.name);
                       },
                       dropdownColor: Colors.deepPurple,
                       hint: Row(
@@ -85,36 +125,45 @@ class _SplashScreenState extends State<SplashScreen> {
                             style: const TextStyle(
                                 fontSize: 20.0, color: Colors.white),
                           ),
-                          Text(activeLang.flag),
+                          Text(
+                            activeLang.flag,
+                            style: const TextStyle(fontSize: 20.0),
+                          ),
                         ],
                       ),
-                      icon: const Icon(Icons.language, color: Colors.white),
                       items: Language.languageList()
-                          .map<DropdownMenuItem<Language>>(
-                              (lang) => DropdownMenuItem(
-                                    value: lang,
-                                    key: Key(lang.flag),
-                                    child: Row(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.spaceAround,
-                                      children: <Widget>[
-                                        Text(
-                                          lang.name,
-                                          style: const TextStyle(
-                                              fontSize: 15.0,
-                                              color: Colors.white),
-                                        ),
-                                        Text(lang.flag)
-                                      ],
+                          .map<DropdownMenuItem<Language>>((lang) =>
+                              DropdownMenuItem(
+                                value: lang,
+                                key: Key(lang.flag),
+                                child: Row(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceAround,
+                                  children: <Widget>[
+                                    Text(
+                                      lang.name,
+                                      style: const TextStyle(
+                                          fontSize: 15.0, color: Colors.white),
                                     ),
-                                  ))
+                                    Text(
+                                      lang.flag,
+                                      style: const TextStyle(fontSize: 20.0),
+                                    )
+                                  ],
+                                ),
+                              ))
                           .toList(),
                     ),
                   ),
+                  const SizedBox(
+                    height: 10.0,
+                  ),
                   Padding(
-                    padding: const EdgeInsets.all(20.0),
+                    padding: const EdgeInsets.all(10.0),
                     child: ElevatedButton(
-                      onPressed: () {},
+                      onPressed: () {
+                        _listofFiles();
+                      },
                       child: Row(
                         children: [
                           const Icon(
@@ -123,7 +172,7 @@ class _SplashScreenState extends State<SplashScreen> {
                           ),
                           const SizedBox(width: 5.0),
                           Text(
-                            getTranslated(context, 'Album')!,
+                            getTranslated(context, 'Album'),
                           ),
                         ],
                       ),
@@ -138,7 +187,7 @@ class _SplashScreenState extends State<SplashScreen> {
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
                       Text(
-                        getTranslated(context, 'Future_Face')!,
+                        getTranslated(context, 'Future_Face'),
                         style: const TextStyle(
                           color: Colors.white,
                           fontSize: 40.0,
@@ -146,7 +195,7 @@ class _SplashScreenState extends State<SplashScreen> {
                       ),
                       const SizedBox(height: 5.0),
                       Text(
-                        getTranslated(context, 'Moving_around_in_TIME')!,
+                        getTranslated(context, 'Moving_around_in_TIME'),
                         style: const TextStyle(
                           color: Colors.white,
                           fontSize: 16.0,
@@ -180,7 +229,7 @@ class _SplashScreenState extends State<SplashScreen> {
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           Text(
-                            getTranslated(context, 'Start')!,
+                            getTranslated(context, 'Start'),
                             style: const TextStyle(
                               fontSize: 20.0,
                             ),

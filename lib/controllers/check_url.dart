@@ -1,3 +1,4 @@
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:http/http.dart' as http;
 
 Future<bool> checkURL(String url) async {
@@ -5,11 +6,14 @@ Future<bool> checkURL(String url) async {
     final response = await http.head(Uri.parse(url));
 
     if (response.statusCode == 200) {
-      print('Server response OK');
+      Fluttertoast.showToast(msg: "Please wait..");
       return true;
+    } else {
+      Fluttertoast.showToast(msg: "Failed to load image ");
     }
   } catch (ex) {
-    print(ex);
+    return false;
   }
+  Fluttertoast.showToast(msg: "Failed to load image ");
   return false;
 }
