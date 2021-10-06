@@ -54,31 +54,72 @@ class _SplashScreenState extends State<SplashScreen> {
   Language activeLang = Language.languageList().first;
 
   List file = [];
-
+  late final AdWidget adWidget;
+  late final InterstitialAd _interstitialAd;
+  late final double h, w;
   @override
   void initState() {
     super.initState();
     // _listofFiles();
+    loadbannerad();
+    loadintadd();
   }
 
-  void _listofFiles() async {
-    Directory directory;
-    directory = (await getExternalStorageDirectory())!;
-    String newPath = directory.path + "/Future_Face_App";
-    directory = Directory(newPath);
-    //print(directory);
-    if (directory.existsSync()) {
-      setState(() {
-        file = io.Directory(directory.path).listSync();
-        // print(file);
-        Navigator.pushNamed(
-          context,
-          '/album',
-        );
-      });
-    } else {
-      Fluttertoast.showToast(msg: "No directory exists");
-    }
+  void loadintadd() {
+    InterstitialAd.load(
+        adUnitId: 'ca-app-pub-3940256099942544/1033173712',
+        request: const AdRequest(),
+        adLoadCallback: InterstitialAdLoadCallback(
+          onAdLoaded: (InterstitialAd ad) {
+            // Keep a reference to the ad so you can show it later.
+
+            _interstitialAd = ad;
+          },
+          onAdFailedToLoad: (LoadAdError error) {
+            print('InterstitialAd failed to load: $error');
+          },
+        ));
+    _interstitialAd.fullScreenContentCallback = FullScreenContentCallback(
+      onAdShowedFullScreenContent: (InterstitialAd ad) =>
+          print('$ad onAdShowedFullScreenContent.'),
+      onAdDismissedFullScreenContent: (InterstitialAd ad) {
+        print('$ad onAdDismissedFullScreenContent.');
+        ad.dispose();
+      },
+      onAdFailedToShowFullScreenContent: (InterstitialAd ad, AdError error) {
+        print('$ad onAdFailedToShowFullScreenContent: $error');
+        ad.dispose();
+      },
+      onAdImpression: (InterstitialAd ad) => print('$ad impression occurred.'),
+    );
+  }
+
+  void loadbannerad() {
+    BannerAd myBanner = BannerAd(
+      adUnitId: 'ca-app-pub-3940256099942544/6300978111',
+      size: AdSize.banner,
+      request: const AdRequest(),
+      listener: BannerAdListener(
+        // Called when an ad is successfully received.
+        onAdLoaded: (Ad ad) => print('Ad loaded.'),
+        // Called when an ad request failed.
+        onAdFailedToLoad: (Ad ad, LoadAdError error) {
+          // Dispose the ad here to free resources.
+          ad.dispose();
+        },
+        // Called when an ad opens an overlay that covers the screen.
+        onAdOpened: (Ad ad) => print('Ad opened.'),
+        // Called when an ad removes an overlay that covers the screen.
+        onAdClosed: (Ad ad) => print('Ad closed.'),
+        // Called when an impression occurs on the ad.
+        onAdImpression: (Ad ad) => print('Ad impression.'),
+      ),
+    );
+    myBanner.load();
+    adWidget = AdWidget(ad: myBanner);
+
+    w = myBanner.size.width.toDouble();
+    h = myBanner.size.height.toDouble();
   }
 
   @override
@@ -97,10 +138,12 @@ class _SplashScreenState extends State<SplashScreen> {
     //   request: const AdRequest(),
     // );
     return Scaffold(
-      // bottomNavigationBar: AdWidget(
-      //   ad: bAd..load(),
-      //   key: UniqueKey(),
-      // ),
+      bottomNavigationBar: Container(
+        alignment: Alignment.center,
+        child: adWidget,
+        width: w,
+        height: h,
+      ),
       body: Container(
         decoration: const BoxDecoration(
           gradient: LinearGradient(
@@ -180,13 +223,27 @@ class _SplashScreenState extends State<SplashScreen> {
                     padding: const EdgeInsets.all(10.0),
                     child: ElevatedButton(
                       onPressed: () {
-                        _listofFiles();
+                        if (_interstitialAd != null) {
+                          _interstitialAd.show();
+                        } else {
+                          Navigator.pushNamed(
+                            context,
+                            '/album',
+                          );
+                        }
                       },
                       child: Row(
                         children: [
                           IconButton(
                             onPressed: () {
-                              _listofFiles();
+                              if (_interstitialAd != null) {
+                                _interstitialAd.show();
+                              } else {
+                                Navigator.pushNamed(
+                                  context,
+                                  '/album',
+                                );
+                              }
                             },
                             icon: SvgPicture.asset('assets/images/gallery.svg'),
                           ),
