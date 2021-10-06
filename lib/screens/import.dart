@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:connectivity_wrapper/connectivity_wrapper.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:future_face_app/localization/localization_const.dart';
 import 'package:future_face_app/models/fileobject.dart';
@@ -157,11 +158,13 @@ class _ImportScreenState extends State<ImportScreen> {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                const Icon(
-                  Icons.photo_library,
-                  color: Colors.white,
-                  size: 30.0,
-                ),
+                IconButton(
+                    onPressed: () async {
+                      if (await _requestPermission(Permission.storage)) {
+                        pickImage(ImageSource.gallery);
+                      }
+                    },
+                    icon: SvgPicture.asset('assets/images/gallery.svg')),
                 const SizedBox(height: 10.0),
                 Text(
                   getTranslated(context, 'Gallery'),
@@ -189,11 +192,13 @@ class _ImportScreenState extends State<ImportScreen> {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                const Icon(
-                  Icons.camera,
-                  color: Colors.white,
-                  size: 30.0,
-                ),
+                IconButton(
+                    onPressed: () async {
+                      if (await _requestPermission(Permission.camera)) {
+                        pickImage(ImageSource.camera);
+                      }
+                    },
+                    icon: SvgPicture.asset('assets/images/camera.svg')),
                 const SizedBox(height: 10.0),
                 Text(
                   getTranslated(context, 'Camera'),
@@ -213,42 +218,45 @@ class _ImportScreenState extends State<ImportScreen> {
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        Container(
-          padding: const EdgeInsets.all(20.0),
-          constraints: const BoxConstraints(
-            maxWidth: 200.0,
-          ),
-          height: 100.0,
-          child: ElevatedButton(
-            onPressed: () async {
-              Fileobject.setFile(imageFile!);
+        GestureDetector(
+          onTap: () async {
+            Fileobject.setFile(imageFile!);
+            if (await ConnectivityWrapper.instance.isConnected) {
               Navigator.pushNamed(
                 context,
                 '/result',
               );
-              if (await ConnectivityWrapper.instance.isConnected) {
-              } else {
-                Fluttertoast.showToast(
-                    msg: "Please Check your Internet Conntection");
-              }
-            },
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text(
-                  (getTranslated(context, 'Proceed')),
-                  style: const TextStyle(
-                    fontSize: 20.0,
-                  ),
+            } else {
+              Fluttertoast.showToast(
+                  msg: "Please Check your Internet Conntection");
+            }
+          },
+          child: Stack(
+            children: <Widget>[
+              Padding(
+                padding: const EdgeInsets.fromLTRB(30, 0, 30, 30),
+                child: SvgPicture.asset('assets/images/proceed.svg'),
+              ),
+              Positioned(
+                bottom: 10.0,
+                left: 0.0,
+                top: 10.0,
+                right: 35.0,
+                child: Column(
+                  children: <Widget>[
+                    InkWell(
+                      child: Text(
+                        getTranslated(context, 'Proceed'),
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 22.0,
+                        ),
+                      ),
+                    )
+                  ],
                 ),
-                const SizedBox(width: 5.0),
-                const Icon(
-                  Icons.keyboard_arrow_right_rounded,
-                  color: Colors.white,
-                  size: 30.0,
-                ),
-              ],
-            ),
+              ),
+            ],
           ),
         ),
       ],

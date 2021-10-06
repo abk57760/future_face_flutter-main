@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="43" height="43" viewBox="0 0 43 43">
+  <defs>
+    <style>
+      .cls-1 {
+        fill: #fff;
+      }
+
+      .cls-2 {
+        fill: #fff;
+      }
+    </style>
+  </defs>
+  <g id="album" transform="translate(-11.334 -12.334)">
+    <circle id="Ellipse_7" data-name="Ellipse 7" class="cls-1" cx="21.5" cy="21.5" r="21.5" transform="translate(11.334 12.334)"/>
+    <g id="bx-photo-album" transform="translate(15.861 19.579)">
+      <path id="Path_6" data-name="Path 6" class="cls-2" d="M16.076,16.766,14.7,14.7,12,18.739H24.13L19.413,12Z" transform="translate(-0.761 -0.913)"/>
+      <path id="Path_7" data-name="Path 7" class="cls-2" d="M16.051,11.016A2.026,2.026,0,1,1,14.026,8.99a2.025,2.025,0,0,1,2.026,2.026Z" transform="translate(-0.761 -0.608)"/>
+      <path id="Path_8" data-name="Path 8" class="cls-2" d="M26.064,3H8.543A3.93,3.93,0,0,0,4.5,7.043V24.564s3.437.016,24.26,0V5.7A2.7,2.7,0,0,0,26.064,3Zm0,18.869H7.2V7.043A1.233,1.233,0,0,1,8.543,5.7H26.064Z" transform="translate(0 0)"/>
+    </g>
+  </g>
+</svg>

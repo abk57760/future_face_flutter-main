@@ -2,12 +2,16 @@ import 'package:flutter/material.dart';
 import 'package:future_face_app/localization/demo_localization.dart';
 import 'package:future_face_app/screens/album.dart';
 import 'package:future_face_app/screens/share_album.dart';
+import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'screens/splash.dart';
 import 'screens/import.dart';
 import 'screens/result.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 
-void main() {
+Future<void> main() async {
+  // WidgetsFlutterBinding.ensureInitialized();
+  // MobileAds.instance.initialize();
+
   runApp(const MyApp());
 }
 

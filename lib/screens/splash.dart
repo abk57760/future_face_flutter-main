@@ -1,11 +1,12 @@
 import 'dart:io';
-
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'dart:io' as io;
 import 'package:future_face_app/localization/localization_const.dart';
 import 'package:future_face_app/main.dart';
 import 'package:future_face_app/models/language.dart';
+import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:path_provider/path_provider.dart';
 
 class SplashScreen extends StatefulWidget {
@@ -82,7 +83,24 @@ class _SplashScreenState extends State<SplashScreen> {
 
   @override
   Widget build(BuildContext context) {
+    // BannerAd bAd = BannerAd(
+    //   size: AdSize.banner,
+    //   adUnitId: 'ca-app-pub-2408614506049729/5167779093',
+    //   listener: BannerAdListener(onAdLoaded: (Ad ad) {
+    //     print("Ad loaded");
+    //   }, onAdFailedToLoad: (Ad ad, LoadAdError error) {
+    //     print("Ad not loaded");
+    //     ad.dispose();
+    //   }, onAdOpened: (Ad ad) {
+    //     print("Ad loaded");
+    //   }),
+    //   request: const AdRequest(),
+    // );
     return Scaffold(
+      // bottomNavigationBar: AdWidget(
+      //   ad: bAd..load(),
+      //   key: UniqueKey(),
+      // ),
       body: Container(
         decoration: const BoxDecoration(
           gradient: LinearGradient(
@@ -166,9 +184,11 @@ class _SplashScreenState extends State<SplashScreen> {
                       },
                       child: Row(
                         children: [
-                          const Icon(
-                            Icons.photo,
-                            color: Colors.white,
+                          IconButton(
+                            onPressed: () {
+                              _listofFiles();
+                            },
+                            icon: SvgPicture.asset('assets/images/gallery.svg'),
                           ),
                           const SizedBox(width: 5.0),
                           Text(
@@ -201,7 +221,7 @@ class _SplashScreenState extends State<SplashScreen> {
                           fontSize: 16.0,
                         ),
                       ),
-                      const SizedBox(height: 50.0),
+                      const SizedBox(height: 40.0),
                       const CircleAvatar(
                         backgroundImage:
                             AssetImage('assets/images/splash-icon.png'),
@@ -214,34 +234,40 @@ class _SplashScreenState extends State<SplashScreen> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Container(
-                    padding: const EdgeInsets.all(20.0),
-                    margin: const EdgeInsets.only(bottom: 10.0),
-                    height: 100.0,
-                    constraints: const BoxConstraints(
-                      maxWidth: 200.0,
-                    ),
-                    child: ElevatedButton(
-                      onPressed: () {
-                        Navigator.pushNamed(context, '/import');
-                      },
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Text(
-                            getTranslated(context, 'Start'),
-                            style: const TextStyle(
-                              fontSize: 20.0,
-                            ),
+                  GestureDetector(
+                    onTap: () {
+                      Navigator.pushNamed(context, '/import');
+                    },
+                    child: Stack(
+                      children: <Widget>[
+                        Padding(
+                          padding: const EdgeInsets.fromLTRB(30, 0, 40, 60),
+                          child: SvgPicture.asset('assets/images/start.svg'),
+                        ),
+                        Positioned(
+                          bottom: 15.0,
+                          left: 15.0,
+                          top: 18.0,
+                          right: 1.0,
+                          child: Column(
+                            children: <Widget>[
+                              InkWell(
+                                child: Text(
+                                  getTranslated(context, 'Start'),
+                                  style: const TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 22.0,
+                                  ),
+                                ),
+                                onTap: () {
+                                  Navigator.pushNamed(context, '/import');
+                                },
+                              )
+                            ],
                           ),
-                          //const SizedBox(width: 3.0),
-                          const Icon(
-                            Icons.keyboard_arrow_right,
-                            color: Colors.white,
-                            size: 30.0,
-                          ),
-                        ],
-                      ),
+                        ),
+                      ],
+                      //child: Image.asset('assets/listback_image.JPG'),
                     ),
                   ),
                 ],
