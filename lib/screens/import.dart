@@ -6,6 +6,7 @@ import 'package:fluttertoast/fluttertoast.dart';
 import 'package:future_face_app/localization/localization_const.dart';
 import 'package:future_face_app/models/fileobject.dart';
 import 'package:getwidget/getwidget.dart';
+import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:permission_handler/permission_handler.dart';
 import '/constants/theme.dart';
 import 'package:image_cropper/image_cropper.dart';
@@ -32,12 +33,84 @@ class _ImportScreenState extends State<ImportScreen> {
       if (pickedImage != null) {
         //print("Image Loaded");
         imageFile = File(pickedImage.path);
+        if (_interstitialAd != null) {
+          _interstitialAd.show();
+          _interstitialAd.fullScreenContentCallback = FullScreenContentCallback(
+            onAdShowedFullScreenContent: (InterstitialAd ad) =>
+                print('$ad onAdShowedFullScreenContent.'),
+            onAdDismissedFullScreenContent: (InterstitialAd ad) {},
+            onAdFailedToShowFullScreenContent:
+                (InterstitialAd ad, AdError error) {
+              print('$ad onAdFailedToShowFullScreenContent: $error');
+              ad.dispose();
+            },
+          );
 
-        cropAndResizeImage(imageFile!);
+          loadintadd();
+          cropAndResizeImage(imageFile!);
+        } else {
+          cropAndResizeImage(imageFile!);
+        }
       } else {
         Fluttertoast.showToast(msg: "No Image Selected");
       }
     });
+  }
+
+  late final AdWidget adWidget;
+  late final InterstitialAd _interstitialAd;
+  late final double h, w;
+  @override
+  void initState() {
+    super.initState();
+    // _listofFiles();
+    loadbannerad();
+    loadintadd();
+  }
+
+  void loadintadd() {
+    InterstitialAd.load(
+        adUnitId: 'ca-app-pub-3940256099942544/1033173712',
+        request: const AdRequest(),
+        adLoadCallback: InterstitialAdLoadCallback(
+          onAdLoaded: (InterstitialAd ad) {
+            _interstitialAd = ad;
+            loadintadd();
+          },
+          onAdFailedToLoad: (LoadAdError error) {
+            Fluttertoast.showToast(msg: "Add not  loaded successfully");
+            loadintadd();
+            print('InterstitialAd failed to load: $error');
+          },
+        ));
+  }
+
+  void loadbannerad() {
+    BannerAd myBanner = BannerAd(
+      adUnitId: 'ca-app-pub-3940256099942544/6300978111',
+      size: AdSize.banner,
+      request: const AdRequest(),
+      listener: BannerAdListener(
+        // Called when an ad is successfully received.
+        onAdLoaded: (Ad ad) => print('Ad loaded.'),
+        // Called when an ad request failed.
+        onAdFailedToLoad: (Ad ad, LoadAdError error) {
+          // Dispose the ad here to free resources.
+          ad.dispose();
+        },
+        // Called when an ad opens an overlay that covers the screen.
+        onAdOpened: (Ad ad) => print('Ad opened.'),
+        // Called when an ad removes an overlay that covers the screen.
+        onAdClosed: (Ad ad) => print('Ad closed.'),
+        // Called when an impression occurs on the ad.
+        onAdImpression: (Ad ad) => print('Ad impression.'),
+      ),
+    );
+    myBanner.load();
+    adWidget = AdWidget(ad: myBanner);
+
+    w = myBanner.size.width.toDouble();
+    h = myBanner.size.height.toDouble();
   }
 
   Future cropAndResizeImage(File imageFileToCrop) async {
@@ -83,6 +156,12 @@ class _ImportScreenState extends State<ImportScreen> {
     return Scaffold(
       appBar: AppBar(
         title: Text(getTranslated(context, "Import_Picture")),
+      ),
+      bottomNavigationBar: Container(
+        alignment: Alignment.center,
+        child: adWidget,
+        width: w,
+        height: h,
       ),
       body: Container(
         decoration: const BoxDecoration(
@@ -239,21 +318,17 @@ class _ImportScreenState extends State<ImportScreen> {
               ),
               Positioned(
                 bottom: 10.0,
-                left: 0.0,
+                left: 65.0,
                 top: 10.0,
                 right: 35.0,
-                child: Column(
-                  children: <Widget>[
-                    InkWell(
-                      child: Text(
-                        getTranslated(context, 'Proceed'),
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 22.0,
-                        ),
-                      ),
-                    )
-                  ],
+                child: InkWell(
+                  child: Text(
+                    getTranslated(context, 'Proceed'),
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 22.0,
+                    ),
+                  ),
                 ),
               ),
             ],

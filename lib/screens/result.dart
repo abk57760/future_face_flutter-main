@@ -13,6 +13,7 @@ import 'package:future_face_app/constants/urls.dart';
 import 'package:future_face_app/controllers/check_url.dart';
 import 'package:future_face_app/localization/localization_const.dart';
 import 'package:future_face_app/models/fileobject.dart';
+import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:http/http.dart' as http;
 import 'package:image_gallery_saver/image_gallery_saver.dart';
 import 'package:path_provider/path_provider.dart';
@@ -200,24 +201,57 @@ class _ResultScreenState extends State<ResultScreen> {
       if (!await directory.exists()) {
         await directory.create(recursive: true);
       } else if (await directory.exists()) {
-        final time = DateTime.now()
-            .toIso8601String()
-            .replaceAll(",", "-")
-            .replaceAll(":", "-");
+        if (_interstitialAd != null) {
+          _interstitialAd.show();
+          _interstitialAd.fullScreenContentCallback = FullScreenContentCallback(
+            onAdShowedFullScreenContent: (InterstitialAd ad) =>
+                print('$ad onAdShowedFullScreenContent.'),
+            onAdDismissedFullScreenContent: (InterstitialAd ad) {},
+            onAdFailedToShowFullScreenContent:
+                (InterstitialAd ad, AdError error) {
+              print('$ad onAdFailedToShowFullScreenContent: $error');
+              ad.dispose();
+            },
+          );
+          loadintadd();
+          final time = DateTime.now()
+              .toIso8601String()
+              .replaceAll(",", "-")
+              .replaceAll(":", "-");
 
-        final name = 'Futureface-$time';
+          final name = 'Futureface-$time';
 
-        File saveFile = File(directory.path + "/$name.png");
-        saveFile.writeAsBytes(
-            bytes.buffer.asUint8List(bytes.offsetInBytes, bytes.lengthInBytes));
-        await ImageGallerySaver.saveImage(bytes, name: name);
-        Fluttertoast.showToast(msg: "Image Saved");
-        Navigator.pushNamed(context, '/album');
-        if (Platform.isIOS) {
-          await ImageGallerySaver.saveFile(saveFile.path,
-              isReturnPathOfIOS: true);
+          File saveFile = File(directory.path + "/$name.png");
+          saveFile.writeAsBytes(bytes.buffer
+              .asUint8List(bytes.offsetInBytes, bytes.lengthInBytes));
+          await ImageGallerySaver.saveImage(bytes, name: name);
+          Fluttertoast.showToast(msg: "Image Saved");
+          Navigator.pushNamed(context, '/album');
+          if (Platform.isIOS) {
+            await ImageGallerySaver.saveFile(saveFile.path,
+                isReturnPathOfIOS: true);
+          }
+          return true;
+        } else {
+          final time = DateTime.now()
+              .toIso8601String()
+              .replaceAll(",", "-")
+              .replaceAll(":", "-");
+
+          final name = 'Futureface-$time';
+
+          File saveFile = File(directory.path + "/$name.png");
+          saveFile.writeAsBytes(bytes.buffer
+              .asUint8List(bytes.offsetInBytes, bytes.lengthInBytes));
+          await ImageGallerySaver.saveImage(bytes, name: name);
+          Fluttertoast.showToast(msg: "Image Saved");
+          Navigator.pushNamed(context, '/album');
+          if (Platform.isIOS) {
+            await ImageGallerySaver.saveFile(saveFile.path,
+                isReturnPathOfIOS: true);
+          }
+          return true;
         }
-        return true;
       }
       return false;
     } catch (e) {
@@ -226,10 +260,13 @@ class _ResultScreenState extends State<ResultScreen> {
     }
   }
 
+  late final AdWidget adWidget;
+  late final InterstitialAd _interstitialAd;
   @override
   void initState() {
     super.initState();
     _isButtonDisabled = false;
+    loadintadd();
 
     Future.delayed(
       const Duration(seconds: 1),
@@ -241,6 +278,23 @@ class _ResultScreenState extends State<ResultScreen> {
         }
       },
     );
+  }
+
+  void loadintadd() {
+    InterstitialAd.load(
+        adUnitId: 'ca-app-pub-3940256099942544/1033173712',
+        request: const AdRequest(),
+        adLoadCallback: InterstitialAdLoadCallback(
+          onAdLoaded: (InterstitialAd ad) {
+            _interstitialAd = ad;
+            loadintadd();
+          },
+          onAdFailedToLoad: (LoadAdError error) {
+            Fluttertoast.showToast(msg: "Add not  loaded successfully");
+            loadintadd();
+            print('InterstitialAd failed to load: $error');
+          },
+        ));
   }
 
   @override
