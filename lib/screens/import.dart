@@ -1,7 +1,16 @@
 import 'dart:io';
 import 'package:connectivity_wrapper/connectivity_wrapper.dart';
+import 'package:facebook_audience_network/facebook_audience_network.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+
+import 'package:image_cropper/image_cropper.dart'
+    show
+        AndroidUiSettings,
+        CropAspectRatioPreset,
+        IOSUiSettings,
+        ImageCompressFormat,
+        ImageCropper;
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:future_face_app/localization/localization_const.dart';
 import 'package:future_face_app/models/fileobject.dart';
@@ -9,7 +18,6 @@ import 'package:getwidget/getwidget.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:permission_handler/permission_handler.dart';
 import '/constants/theme.dart';
-import 'package:image_cropper/image_cropper.dart';
 import 'package:image_picker/image_picker.dart';
 
 class ImportScreen extends StatefulWidget {
@@ -35,17 +43,6 @@ class _ImportScreenState extends State<ImportScreen> {
         imageFile = File(pickedImage.path);
         if (_interstitialAd != null) {
           _interstitialAd.show();
-          _interstitialAd.fullScreenContentCallback = FullScreenContentCallback(
-            onAdShowedFullScreenContent: (InterstitialAd ad) =>
-                print('$ad onAdShowedFullScreenContent.'),
-            onAdDismissedFullScreenContent: (InterstitialAd ad) {},
-            onAdFailedToShowFullScreenContent:
-                (InterstitialAd ad, AdError error) {
-              print('$ad onAdFailedToShowFullScreenContent: $error');
-              ad.dispose();
-            },
-          );
-
           loadintadd();
           cropAndResizeImage(imageFile!);
         } else {
@@ -66,6 +63,21 @@ class _ImportScreenState extends State<ImportScreen> {
     // _listofFiles();
     loadbannerad();
     loadintadd();
+    FacebookAudienceNetwork.init(
+        testingId: "37b1da9d-b48c-4103-a393-2e095e734bd6", //optional
+        iOSAdvertiserTrackingEnabled: true //default false
+        );
+  }
+
+  void Loadfb() {
+    FacebookInterstitialAd.loadInterstitialAd(
+      placementId: "IMG_16_9_APP_INSTALL#YOUR_PLACEMENT_ID",
+      listener: (result, value) {
+        if (result == InterstitialAdResult.LOADED) {
+          FacebookInterstitialAd.showInterstitialAd();
+        }
+      },
+    );
   }
 
   void loadintadd() {
@@ -115,7 +127,7 @@ class _ImportScreenState extends State<ImportScreen> {
 
   Future cropAndResizeImage(File imageFileToCrop) async {
     String _title = getTranslated(context, 'Resize_Image');
-    File? croppedImage = await ImageCropper.cropImage(
+    File? croppedImage = await ImageCropper().cropImage(
         sourcePath: imageFileToCrop.path,
         compressFormat: ImageCompressFormat.png,
         compressQuality: 60,
@@ -227,7 +239,7 @@ class _ImportScreenState extends State<ImportScreen> {
             maxWidth: 200.0,
           ),
           width: 160.0,
-          height: 130.0,
+          height: 150.0,
           child: ElevatedButton(
             onPressed: () async {
               if (await _requestPermission(Permission.storage)) {
@@ -261,7 +273,7 @@ class _ImportScreenState extends State<ImportScreen> {
             maxWidth: 200.0,
           ),
           width: 160.0,
-          height: 130.0,
+          height: 150.0,
           child: ElevatedButton(
             onPressed: () async {
               if (await _requestPermission(Permission.camera)) {

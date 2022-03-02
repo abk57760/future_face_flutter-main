@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:facebook_audience_network/facebook_audience_network.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:fluttertoast/fluttertoast.dart';
@@ -59,9 +60,13 @@ class _SplashScreenState extends State<SplashScreen> {
   @override
   void initState() {
     super.initState();
+    FacebookAudienceNetwork.init(
+        testingId: "37b1da9d-b48c-4103-a393-2e095e734bd6", //optional
+        iOSAdvertiserTrackingEnabled: true //default false
+        );
     loadintadd();
     loadbannerad();
-    // _listofFiles();
+    //_listofFiles();
   }
 
   void loadintadd() {
@@ -74,15 +79,13 @@ class _SplashScreenState extends State<SplashScreen> {
             loadintadd();
           },
           onAdFailedToLoad: (LoadAdError error) {
-            Fluttertoast.showToast(msg: "Add not  loaded successfully");
-            loadintadd();
             print('InterstitialAd failed to load: $error');
           },
         ));
   }
 
   void loadbannerad() {
-    BannerAd myBanner = BannerAd(
+    BannerAd? myBanner = BannerAd(
       adUnitId: 'ca-app-pub-3940256099942544/6300978111',
       size: AdSize.banner,
       request: const AdRequest(),
@@ -159,11 +162,10 @@ class _SplashScreenState extends State<SplashScreen> {
     return WillPopScope(
       onWillPop: () => showExitPopup(context),
       child: Scaffold(
-        bottomNavigationBar: Container(
-          alignment: Alignment.center,
-          child: adWidget,
-          width: w,
-          height: h,
+        bottomNavigationBar: FacebookBannerAd(
+          bannerSize: BannerSize.STANDARD,
+          keepAlive: true,
+          placementId: "IMG_16_9_APP_INSTALL#YOUR_PLACEMENT_ID",
         ),
         body: Container(
           decoration: const BoxDecoration(
@@ -247,22 +249,7 @@ class _SplashScreenState extends State<SplashScreen> {
                         onPressed: () {
                           if (_interstitialAd != null) {
                             _interstitialAd.show();
-                            _interstitialAd.fullScreenContentCallback =
-                                FullScreenContentCallback(
-                              onAdShowedFullScreenContent:
-                                  (InterstitialAd ad) =>
-                                      print('$ad onAdShowedFullScreenContent.'),
-                              onAdDismissedFullScreenContent:
-                                  (InterstitialAd ad) {
-                                Navigator.pushNamed(context, '/album');
-                              },
-                              onAdFailedToShowFullScreenContent:
-                                  (InterstitialAd ad, AdError error) {
-                                print(
-                                    '$ad onAdFailedToShowFullScreenContent: $error');
-                                ad.dispose();
-                              },
-                            );
+
                             loadintadd();
                             Navigator.pushNamed(context, '/album');
                           } else {
@@ -275,22 +262,7 @@ class _SplashScreenState extends State<SplashScreen> {
                               onPressed: () {
                                 if (_interstitialAd != null) {
                                   _interstitialAd.show();
-                                  _interstitialAd.fullScreenContentCallback =
-                                      FullScreenContentCallback(
-                                    onAdShowedFullScreenContent:
-                                        (InterstitialAd ad) => print(
-                                            '$ad onAdShowedFullScreenContent.'),
-                                    onAdDismissedFullScreenContent:
-                                        (InterstitialAd ad) {
-                                      Navigator.pushNamed(context, '/album');
-                                    },
-                                    onAdFailedToShowFullScreenContent:
-                                        (InterstitialAd ad, AdError error) {
-                                      print(
-                                          '$ad onAdFailedToShowFullScreenContent: $error');
-                                      ad.dispose();
-                                    },
-                                  );
+
                                   loadintadd();
                                   Navigator.pushNamed(context, '/album');
                                 } else {
@@ -348,21 +320,7 @@ class _SplashScreenState extends State<SplashScreen> {
                       onTap: () {
                         if (_interstitialAd != null) {
                           _interstitialAd.show();
-                          _interstitialAd.fullScreenContentCallback =
-                              FullScreenContentCallback(
-                            onAdShowedFullScreenContent: (InterstitialAd ad) =>
-                                print('$ad onAdShowedFullScreenContent.'),
-                            onAdDismissedFullScreenContent:
-                                (InterstitialAd ad) {
-                              Navigator.pushNamed(context, '/import');
-                            },
-                            onAdFailedToShowFullScreenContent:
-                                (InterstitialAd ad, AdError error) {
-                              print(
-                                  '$ad onAdFailedToShowFullScreenContent: $error');
-                              ad.dispose();
-                            },
-                          );
+
                           loadintadd();
                           Navigator.pushNamed(context, '/import');
                         } else {
@@ -393,24 +351,7 @@ class _SplashScreenState extends State<SplashScreen> {
                                   onTap: () {
                                     if (_interstitialAd != null) {
                                       _interstitialAd.show();
-                                      _interstitialAd
-                                              .fullScreenContentCallback =
-                                          FullScreenContentCallback(
-                                        onAdShowedFullScreenContent:
-                                            (InterstitialAd ad) => print(
-                                                '$ad onAdShowedFullScreenContent.'),
-                                        onAdDismissedFullScreenContent:
-                                            (InterstitialAd ad) {
-                                          Navigator.pushNamed(
-                                              context, '/import');
-                                        },
-                                        onAdFailedToShowFullScreenContent:
-                                            (InterstitialAd ad, AdError error) {
-                                          print(
-                                              '$ad onAdFailedToShowFullScreenContent: $error');
-                                          ad.dispose();
-                                        },
-                                      );
+
                                       loadintadd();
                                       Navigator.pushNamed(context, '/import');
                                     } else {

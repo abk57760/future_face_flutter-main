@@ -1,13 +1,11 @@
 import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
-import 'dart:ui';
 import 'package:carousel_slider/carousel_slider.dart';
-import 'package:connectivity/connectivity.dart';
 import 'package:dio/dio.dart';
+import 'package:facebook_audience_network/facebook_audience_network.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/rendering.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:future_face_app/constants/urls.dart';
 import 'package:future_face_app/controllers/check_url.dart';
@@ -61,14 +59,7 @@ class _ResultScreenState extends State<ResultScreen> {
   }
 
   Future<bool> isDeviceConnected() async {
-    var connectivityResult = await (Connectivity().checkConnectivity());
-    if (connectivityResult == ConnectivityResult.mobile) {
-      return true;
-    } else if (connectivityResult == ConnectivityResult.wifi) {
-      return true;
-    } else {
-      return false;
-    }
+    return true;
   }
 
   void uploadImageToServer(File image, [double ageValue = 65.0]) async {
@@ -203,16 +194,6 @@ class _ResultScreenState extends State<ResultScreen> {
       } else if (await directory.exists()) {
         if (_interstitialAd != null) {
           _interstitialAd.show();
-          _interstitialAd.fullScreenContentCallback = FullScreenContentCallback(
-            onAdShowedFullScreenContent: (InterstitialAd ad) =>
-                print('$ad onAdShowedFullScreenContent.'),
-            onAdDismissedFullScreenContent: (InterstitialAd ad) {},
-            onAdFailedToShowFullScreenContent:
-                (InterstitialAd ad, AdError error) {
-              print('$ad onAdFailedToShowFullScreenContent: $error');
-              ad.dispose();
-            },
-          );
           loadintadd();
           final time = DateTime.now()
               .toIso8601String()
@@ -267,7 +248,10 @@ class _ResultScreenState extends State<ResultScreen> {
     super.initState();
     _isButtonDisabled = false;
     loadintadd();
-
+    FacebookAudienceNetwork.init(
+        testingId: "37b1da9d-b48c-4103-a393-2e095e734bd6", //optional
+        iOSAdvertiserTrackingEnabled: true //default false
+        );
     Future.delayed(
       const Duration(seconds: 1),
       () {
@@ -275,6 +259,17 @@ class _ResultScreenState extends State<ResultScreen> {
           uploadImageToServer(imageFile!);
         } else {
           Fluttertoast.showToast(msg: "Failed to load image ");
+        }
+      },
+    );
+  }
+
+  void Loadfb() {
+    FacebookInterstitialAd.loadInterstitialAd(
+      placementId: "IMG_16_9_APP_INSTALL#YOUR_PLACEMENT_ID",
+      listener: (result, value) {
+        if (result == InterstitialAdResult.LOADED) {
+          FacebookInterstitialAd.showInterstitialAd();
         }
       },
     );

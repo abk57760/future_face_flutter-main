@@ -1,6 +1,6 @@
 import 'dart:io';
 import 'dart:io' as io;
-import 'package:flutter/cupertino.dart';
+import 'package:facebook_audience_network/facebook_audience_network.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:future_face_app/models/fileobject.dart';
@@ -30,29 +30,26 @@ class _AlbumScreenState extends State<AlbumScreen> {
 
   int num = 0;
   late final AdWidget adWidget;
-  late final InterstitialAd _interstitialAd;
+
   @override
   void initState() {
     super.initState();
     _listofFiles();
-    loadintadd();
+    FacebookAudienceNetwork.init(
+        testingId: "37b1da9d-b48c-4103-a393-2e095e734bd6", //optional
+        iOSAdvertiserTrackingEnabled: true //default false
+        );
   }
 
-  void loadintadd() {
-    InterstitialAd.load(
-        adUnitId: 'ca-app-pub-3940256099942544/1033173712',
-        request: const AdRequest(),
-        adLoadCallback: InterstitialAdLoadCallback(
-          onAdLoaded: (InterstitialAd ad) {
-            _interstitialAd = ad;
-            loadintadd();
-          },
-          onAdFailedToLoad: (LoadAdError error) {
-            Fluttertoast.showToast(msg: "Add not  loaded successfully");
-            loadintadd();
-            print('InterstitialAd failed to load: $error');
-          },
-        ));
+  void Loadfb() {
+    FacebookInterstitialAd.loadInterstitialAd(
+      placementId: "IMG_16_9_APP_INSTALL#YOUR_PLACEMENT_ID",
+      listener: (result, value) {
+        if (result == InterstitialAdResult.LOADED) {
+          FacebookInterstitialAd.showInterstitialAd();
+        }
+      },
+    );
   }
 
   void _listofFiles() async {
@@ -99,43 +96,15 @@ class _AlbumScreenState extends State<AlbumScreen> {
                 shape: Border.all(width: 4),
                 child: InkWell(
                   onTap: () {
-                    if (_interstitialAd != null) {
-                      _interstitialAd.show();
-                      _interstitialAd.fullScreenContentCallback =
-                          FullScreenContentCallback(
-                        onAdShowedFullScreenContent: (InterstitialAd ad) =>
-                            print('$ad onAdShowedFullScreenContent.'),
-                        onAdDismissedFullScreenContent: (InterstitialAd ad) {},
-                        onAdFailedToShowFullScreenContent:
-                            (InterstitialAd ad, AdError error) {
-                          print(
-                              '$ad onAdFailedToShowFullScreenContent: $error');
-                          ad.dispose();
-                        },
-                      );
-                      loadintadd();
-                      _interstitialAd.show();
-                      activeindex = index;
-                      Fileobject.set(index);
-                      //print(index);
-                      Navigator.of(context)
-                          .push(MaterialPageRoute(
-                              builder: (ctx) => const AlbumResult()))
-                          .then((context) {
-                        _listofFiles();
-                      });
-                    } else {
-                      _interstitialAd.show();
-                      activeindex = index;
-                      Fileobject.set(index);
-                      //print(index);
-                      Navigator.of(context)
-                          .push(MaterialPageRoute(
-                              builder: (ctx) => const AlbumResult()))
-                          .then((context) {
-                        _listofFiles();
-                      });
-                    }
+                    activeindex = index;
+                    Fileobject.set(index);
+                    //print(index);
+                    Navigator.of(context)
+                        .push(MaterialPageRoute(
+                            builder: (ctx) => const AlbumResult()))
+                        .then((context) {
+                      _listofFiles();
+                    });
                   },
                   child: Padding(
                     padding: const EdgeInsets.all(8.0),
