@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:future_face_app/localization/demo_localization.dart';
 import 'package:future_face_app/screens/album.dart';
@@ -11,7 +12,7 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   MobileAds.instance.initialize();
-
+  EasyLocalization.ensureInitialized();
   runApp(const MyApp());
 }
 

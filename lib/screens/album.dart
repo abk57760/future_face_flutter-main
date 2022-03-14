@@ -41,7 +41,7 @@ class _AlbumScreenState extends State<AlbumScreen> {
         );
   }
 
-  void Loadfb() {
+  void loadfb() {
     FacebookInterstitialAd.loadInterstitialAd(
       placementId: "IMG_16_9_APP_INSTALL#YOUR_PLACEMENT_ID",
       listener: (result, value) {

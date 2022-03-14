@@ -2,7 +2,6 @@ import 'dart:io';
 import 'package:facebook_audience_network/facebook_audience_network.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:fluttertoast/fluttertoast.dart';
 import 'package:future_face_app/localization/localization_const.dart';
 import 'package:future_face_app/main.dart';
 import 'package:future_face_app/models/language.dart';
@@ -60,6 +59,7 @@ class _SplashScreenState extends State<SplashScreen> {
   @override
   void initState() {
     super.initState();
+
     FacebookAudienceNetwork.init(
         testingId: "37b1da9d-b48c-4103-a393-2e095e734bd6", //optional
         iOSAdvertiserTrackingEnabled: true //default false
@@ -247,30 +247,15 @@ class _SplashScreenState extends State<SplashScreen> {
                       padding: const EdgeInsets.all(10.0),
                       child: ElevatedButton(
                         onPressed: () {
-                          if (_interstitialAd != null) {
-                            _interstitialAd.show();
-
-                            loadintadd();
-                            Navigator.pushNamed(context, '/album');
-                          } else {
-                            Navigator.pushNamed(context, '/album');
-                          }
+                          _interstitialAd.show();
+                          Navigator.pushNamed(context, '/album');
                         },
                         child: Row(
                           children: [
                             IconButton(
-                              onPressed: () {
-                                if (_interstitialAd != null) {
-                                  _interstitialAd.show();
-
-                                  loadintadd();
-                                  Navigator.pushNamed(context, '/album');
-                                } else {
-                                  Navigator.pushNamed(context, '/album');
-                                }
-                              },
                               icon:
                                   SvgPicture.asset('assets/images/gallery.svg'),
+                              onPressed: () {},
                             ),
                             const SizedBox(width: 5.0),
                             Text(
@@ -307,66 +292,45 @@ class _SplashScreenState extends State<SplashScreen> {
                         const CircleAvatar(
                           backgroundImage:
                               AssetImage('assets/images/splash-icon.png'),
-                          radius: 120.0,
+                          radius: 130.0,
                         ),
                       ],
                     )
                   ],
                 ),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    GestureDetector(
-                      onTap: () {
-                        if (_interstitialAd != null) {
-                          _interstitialAd.show();
-
-                          loadintadd();
-                          Navigator.pushNamed(context, '/import');
-                        } else {
-                          Navigator.pushNamed(context, '/import');
-                        }
-                      },
-                      child: Stack(
-                        children: <Widget>[
-                          Padding(
-                            padding: const EdgeInsets.fromLTRB(30, 0, 40, 60),
-                            child: SvgPicture.asset('assets/images/start.svg'),
-                          ),
-                          Positioned(
-                            bottom: 15.0,
-                            left: 15.0,
-                            top: 18.0,
-                            right: 1.0,
-                            child: Column(
-                              children: <Widget>[
-                                InkWell(
-                                  child: Text(
-                                    getTranslated(context, 'Start'),
-                                    style: const TextStyle(
-                                      color: Colors.white,
-                                      fontSize: 22.0,
-                                    ),
-                                  ),
-                                  onTap: () {
-                                    if (_interstitialAd != null) {
-                                      _interstitialAd.show();
-
-                                      loadintadd();
-                                      Navigator.pushNamed(context, '/import');
-                                    } else {
-                                      Navigator.pushNamed(context, '/import');
-                                    }
-                                  },
-                                )
-                              ],
-                            ),
-                          ),
-                        ],
-                        //child: Image.asset('assets/listback_image.JPG'),
+                GestureDetector(
+                  onTap: () {
+                    _interstitialAd.show();
+                    Navigator.pushNamed(context, '/import');
+                  },
+                  child: Stack(
+                    children: <Widget>[
+                      Padding(
+                        padding: const EdgeInsets.fromLTRB(30, 0, 40, 60),
+                        child: SvgPicture.asset('assets/images/start.svg'),
                       ),
-                    ),
-                  ],
+                      Positioned(
+                        bottom: 15.0,
+                        left: 15.0,
+                        top: 18.0,
+                        right: 1.0,
+                        child: Column(
+                          children: <Widget>[
+                            InkWell(
+                              child: Text(
+                                getTranslated(context, 'Start'),
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 22.0,
+                                ),
+                              ),
+                            )
+                          ],
+                        ),
+                      ),
+                    ],
+                    //child: Image.asset('assets/listback_image.JPG'),
+                  ),
                 ),
               ],
             ),
