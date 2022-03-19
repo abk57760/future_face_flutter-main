@@ -61,7 +61,7 @@ class _SplashScreenState extends State<SplashScreen> {
     super.initState();
 
     FacebookAudienceNetwork.init(
-        testingId: "37b1da9d-b48c-4103-a393-2e095e734bd6", //optional
+        //testingId: "37b1da9d-b48c-4103-a393-2e095e734bd6", //optional
         iOSAdvertiserTrackingEnabled: true //default false
         );
     loadintadd();
@@ -71,12 +71,11 @@ class _SplashScreenState extends State<SplashScreen> {
 
   void loadintadd() {
     InterstitialAd.load(
-        adUnitId: 'ca-app-pub-3940256099942544/1033173712',
+        adUnitId: 'ca-app-pub-2408614506049729/6644512291',
         request: const AdRequest(),
         adLoadCallback: InterstitialAdLoadCallback(
           onAdLoaded: (InterstitialAd ad) {
             _interstitialAd = ad;
-            loadintadd();
           },
           onAdFailedToLoad: (LoadAdError error) {
             print('InterstitialAd failed to load: $error');
@@ -86,12 +85,13 @@ class _SplashScreenState extends State<SplashScreen> {
 
   void loadbannerad() {
     BannerAd? myBanner = BannerAd(
-      adUnitId: 'ca-app-pub-3940256099942544/6300978111',
+      adUnitId: 'ca-app-pub-2408614506049729/5167779093',
       size: AdSize.banner,
       request: const AdRequest(),
       listener: BannerAdListener(
         onAdLoaded: (Ad ad) => print('Ad loaded.'),
         onAdFailedToLoad: (Ad ad, LoadAdError error) {
+          print('Yeh error ha  $error.code');
           ad.dispose();
         },
         onAdOpened: (Ad ad) => print('Ad opened.'),
@@ -162,10 +162,11 @@ class _SplashScreenState extends State<SplashScreen> {
     return WillPopScope(
       onWillPop: () => showExitPopup(context),
       child: Scaffold(
-        bottomNavigationBar: FacebookBannerAd(
-          bannerSize: BannerSize.STANDARD,
-          keepAlive: true,
-          placementId: "IMG_16_9_APP_INSTALL#YOUR_PLACEMENT_ID",
+        bottomNavigationBar: Container(
+          alignment: Alignment.center,
+          child: adWidget,
+          width: w,
+          height: h,
         ),
         body: Container(
           decoration: const BoxDecoration(

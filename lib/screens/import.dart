@@ -1,6 +1,5 @@
 import 'dart:io';
 import 'package:connectivity_wrapper/connectivity_wrapper.dart';
-import 'package:facebook_audience_network/facebook_audience_network.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
@@ -63,26 +62,11 @@ class _ImportScreenState extends State<ImportScreen> {
     // _listofFiles();
     loadbannerad();
     loadintadd();
-    FacebookAudienceNetwork.init(
-        testingId: "37b1da9d-b48c-4103-a393-2e095e734bd6", //optional
-        iOSAdvertiserTrackingEnabled: true //default false
-        );
-  }
-
-  void Loadfb() {
-    FacebookInterstitialAd.loadInterstitialAd(
-      placementId: "IMG_16_9_APP_INSTALL#YOUR_PLACEMENT_ID",
-      listener: (result, value) {
-        if (result == InterstitialAdResult.LOADED) {
-          FacebookInterstitialAd.showInterstitialAd();
-        }
-      },
-    );
   }
 
   void loadintadd() {
     InterstitialAd.load(
-        adUnitId: 'ca-app-pub-3940256099942544/1033173712',
+        adUnitId: 'ca-app-pub-2408614506049729/6644512291',
         request: const AdRequest(),
         adLoadCallback: InterstitialAdLoadCallback(
           onAdLoaded: (InterstitialAd ad) {
@@ -99,7 +83,7 @@ class _ImportScreenState extends State<ImportScreen> {
 
   void loadbannerad() {
     BannerAd myBanner = BannerAd(
-      adUnitId: 'ca-app-pub-3940256099942544/6300978111',
+      adUnitId: 'ca-app-pub-2408614506049729/5167779093',
       size: AdSize.banner,
       request: const AdRequest(),
       listener: BannerAdListener(

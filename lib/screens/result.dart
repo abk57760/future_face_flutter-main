@@ -3,7 +3,6 @@ import 'dart:io';
 import 'dart:typed_data';
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:dio/dio.dart';
-import 'package:facebook_audience_network/facebook_audience_network.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
@@ -41,6 +40,7 @@ class _ResultScreenState extends State<ResultScreen> {
     Future.delayed(
       const Duration(seconds: 1),
       () => {
+        _interstitialAd.show(),
         Navigator.pop(context),
       },
     );
@@ -192,47 +192,25 @@ class _ResultScreenState extends State<ResultScreen> {
       if (!await directory.exists()) {
         await directory.create(recursive: true);
       } else if (await directory.exists()) {
-        if (_interstitialAd != null) {
-          _interstitialAd.show();
-          loadintadd();
-          final time = DateTime.now()
-              .toIso8601String()
-              .replaceAll(",", "-")
-              .replaceAll(":", "-");
+        _interstitialAd.show();
+        final time = DateTime.now()
+            .toIso8601String()
+            .replaceAll(",", "-")
+            .replaceAll(":", "-");
 
-          final name = 'Futureface-$time';
+        final name = 'Futureface-$time';
 
-          File saveFile = File(directory.path + "/$name.png");
-          saveFile.writeAsBytes(bytes.buffer
-              .asUint8List(bytes.offsetInBytes, bytes.lengthInBytes));
-          await ImageGallerySaver.saveImage(bytes, name: name);
-          Fluttertoast.showToast(msg: "Image Saved");
-          Navigator.pushNamed(context, '/album');
-          if (Platform.isIOS) {
-            await ImageGallerySaver.saveFile(saveFile.path,
-                isReturnPathOfIOS: true);
-          }
-          return true;
-        } else {
-          final time = DateTime.now()
-              .toIso8601String()
-              .replaceAll(",", "-")
-              .replaceAll(":", "-");
-
-          final name = 'Futureface-$time';
-
-          File saveFile = File(directory.path + "/$name.png");
-          saveFile.writeAsBytes(bytes.buffer
-              .asUint8List(bytes.offsetInBytes, bytes.lengthInBytes));
-          await ImageGallerySaver.saveImage(bytes, name: name);
-          Fluttertoast.showToast(msg: "Image Saved");
-          Navigator.pushNamed(context, '/album');
-          if (Platform.isIOS) {
-            await ImageGallerySaver.saveFile(saveFile.path,
-                isReturnPathOfIOS: true);
-          }
-          return true;
+        File saveFile = File(directory.path + "/$name.png");
+        saveFile.writeAsBytes(
+            bytes.buffer.asUint8List(bytes.offsetInBytes, bytes.lengthInBytes));
+        await ImageGallerySaver.saveImage(bytes, name: name);
+        Fluttertoast.showToast(msg: "Image Saved");
+        Navigator.pushNamed(context, '/album');
+        if (Platform.isIOS) {
+          await ImageGallerySaver.saveFile(saveFile.path,
+              isReturnPathOfIOS: true);
         }
+        return true;
       }
       return false;
     } catch (e) {
@@ -246,12 +224,8 @@ class _ResultScreenState extends State<ResultScreen> {
   @override
   void initState() {
     super.initState();
-    _isButtonDisabled = false;
     loadintadd();
-    FacebookAudienceNetwork.init(
-        testingId: "37b1da9d-b48c-4103-a393-2e095e734bd6", //optional
-        iOSAdvertiserTrackingEnabled: true //default false
-        );
+    _isButtonDisabled = false;
     Future.delayed(
       const Duration(seconds: 1),
       () {
@@ -264,29 +238,15 @@ class _ResultScreenState extends State<ResultScreen> {
     );
   }
 
-  void Loadfb() {
-    FacebookInterstitialAd.loadInterstitialAd(
-      placementId: "IMG_16_9_APP_INSTALL#YOUR_PLACEMENT_ID",
-      listener: (result, value) {
-        if (result == InterstitialAdResult.LOADED) {
-          FacebookInterstitialAd.showInterstitialAd();
-        }
-      },
-    );
-  }
-
   void loadintadd() {
     InterstitialAd.load(
-        adUnitId: 'ca-app-pub-3940256099942544/1033173712',
+        adUnitId: 'ca-app-pub-2408614506049729/4941647361',
         request: const AdRequest(),
         adLoadCallback: InterstitialAdLoadCallback(
           onAdLoaded: (InterstitialAd ad) {
             _interstitialAd = ad;
-            loadintadd();
           },
           onAdFailedToLoad: (LoadAdError error) {
-            Fluttertoast.showToast(msg: "Add not  loaded successfully");
-            loadintadd();
             print('InterstitialAd failed to load: $error');
           },
         ));
